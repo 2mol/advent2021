@@ -46,6 +46,19 @@ let solution1 =
     |> List.length
     |> string
 
+let isValid2 (lineSpec : LineSpec) : bool =
+    let firstLetter =
+        lineSpec.Password[lineSpec.Min - 1] = lineSpec.Letter
+
+    let secondLetter =
+        lineSpec.Password[lineSpec.Max - 1] = lineSpec.Letter
+
+    if firstLetter && secondLetter
+    then false
+    else firstLetter || secondLetter
+
 let solution2 =
-    ""
+    entries
+    |> List.filter isValid2
+    |> List.length
     |> string
