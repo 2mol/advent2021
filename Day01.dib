@@ -1,0 +1,26 @@
+#!fsharp
+
+open System.IO
+
+let entries =
+    File.ReadLines "inputs/day1.txt"
+    |> Seq.map int
+    |> Seq.toList // this is necessary to consume all the lines upfront!
+
+#!fsharp
+
+let largerThanPreviousCount list =
+    Seq.zip list (Seq.tail list)
+    |> Seq.map (fun (a, b) -> a < b)
+    |> Seq.filter id
+    |> Seq.length
+
+largerThanPreviousCount entries
+
+#!fsharp
+
+let depthSums =
+    Seq.windowed 3 entries
+    |> Seq.map Array.sum
+
+largerThanPreviousCount depthSums
