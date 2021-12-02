@@ -6,9 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- <Compile Include="Prev_Day01.fs" />
-    <Compile Include="Prev_Day02.fs" /> -->
     <Compile Include="Day01.fs" />
+    <Compile Include="Day02.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 

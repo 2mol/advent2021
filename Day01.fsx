@@ -2,11 +2,11 @@ open System.IO
 
 let entries =
     File.ReadLines "inputs/day1.txt"
-    |> Seq.map int
     |> Seq.toList // this is necessary to consume all the lines upfront!
+    |> List.map int
 
-let largerThanPreviousCount list =
-    Seq.zip list (Seq.tail list)
+let largerThanPreviousCount numbers =
+    Seq.zip numbers (Seq.tail numbers)
     |> Seq.map (fun (a, b) -> a < b)
     |> Seq.filter id
     |> Seq.length
