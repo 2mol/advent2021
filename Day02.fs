@@ -23,12 +23,31 @@ let aggregate currentPos (dir, dist) =
     | "forward" -> { currentPos with Dist = currentPos.Dist + dist}
     | "down" -> { currentPos with Depth = currentPos.Depth + dist }
     | "up" -> { currentPos with Depth = currentPos.Depth - dist}
-    | _ -> failwith "unrec pos"
 
 let solution1 =
     let pos = List.fold aggregate {Dist = 0; Depth = 0} input
     pos.Dist * pos.Depth
     |> string
 
+// --------------------------------------
+
+type PositionAndAim = {
+    Dist: int
+    Depth: int
+    Aim: int
+}
+
+let aggregate2 (currentPos : PositionAndAim) (dir, aimOrDist) =
+    match dir with
+    | "forward" ->
+        { currentPos with
+            Dist = currentPos.Dist + aimOrDist
+            Depth = currentPos.Depth + (currentPos.Aim * aimOrDist)
+        }
+    | "down" -> { currentPos with Aim = currentPos.Aim + aimOrDist }
+    | "up" -> { currentPos with Aim = currentPos.Aim - aimOrDist}
+
 let solution2 =
-    ""
+    let pos = List.fold aggregate2 {Dist = 0; Depth = 0; Aim = 0} input
+    pos.Dist * pos.Depth
+    |> string
