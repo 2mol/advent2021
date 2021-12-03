@@ -32,12 +32,6 @@ let solution1 =
 
 // --------------------------------------
 
-
-let aggregate2 (wantedChar : char) (pos : int) (count : int) (str : string) : int =
-    if str[pos] = wantedChar
-    then count + 1
-    else count
-
 type BitCriterion = OxygenGenerator | CO2Scrubber
 
 let rec solutionHelper (pos : int) (criterion : BitCriterion) (measurements : string seq) =
