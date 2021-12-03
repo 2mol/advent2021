@@ -17,8 +17,8 @@ let solution2 =
     seq {
         for el1 in entries do
         for el2 in entries do
-        if Set.contains (2020 - el1 - el2) entries
-            then yield el1, el2
+        if Set.contains (2020 - el1 - el2) entries then
+        yield el1, el2
     }
     |> Seq.toList
     |> List.head
