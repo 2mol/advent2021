@@ -57,7 +57,6 @@ let rec boardsInOrderOfWins (numbers : int array) (calledIndex : int) (boards : 
         if Seq.isEmpty winners then
             boardsInOrderOfWins numbers (calledIndex + 1) boards
         else
-            // printfn "board %A won with %i at %A" board result numbers[..calledIndex]
             let newBoards =
                 List.except (Seq.map fst winners) boards
 
