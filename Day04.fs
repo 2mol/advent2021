@@ -9,11 +9,9 @@ let input =
     File.ReadLines "inputs/input4.txt"
     |> Seq.toArray
 
-// type Cell = { Number : string; Marked : bool }
+type Board = int array array
 
-// let initCell n = { Number = n; Marked = false }
-
-let rec parseBoards (lines : string array) : int array array list =
+let rec parseBoards (lines : string array) : Board list =
     if Array.length lines < 6 then
         []
     else
@@ -26,19 +24,36 @@ let rec parseBoards (lines : string array) : int array array list =
             )
         firstBoard :: parseBoards lines[6..]
 
-let boardWins (board : int array array) (calledNumbers : int array) : (int * int) option =
-    None
+let boardWins (calledNumbers : int array) (board : Board) : int option =
+    let rowSlices = seq { for i in 0..4 do yield (array2D board)[i,*]}
+    let colSlices = seq { for i in 0..4 do yield (array2D board)[*,i]}
+    let slices = Seq.append rowSlices colSlices
+    let allNumbersAreCalled slice =
+        Array.map (fun el -> Array.contains el calledNumbers) slice
+        |> Array.forall id
+
+    let winningSlices =
+        seq {for slice in slices do if allNumbersAreCalled slice then yield slice}
+
+    let unmarkedSum () =
+        Array.concat board
+        |> Array.filter (fun el -> not <| Array.contains el calledNumbers)
+        |> Array.sum
+
+    Seq.tryHead winningSlices
+    |> Option.map (fun slice -> unmarkedSum () * Seq.last calledNumbers)
 
 let solution1 =
-    // let numbers = (Array.head input).Split "," |> Array.map int
+    let numbers = (Array.head input).Split "," |> Array.map int
     let boards = parseBoards <| Array.tail input
-    printfn "%A" boards
-    // seq {
-    //     for n in numbers do
-    //     for b in boards do
-    //     if boardIsWinner b then
-    //     yield b
-    // }
-    ""
+    seq {
+        for i in 0 .. Array.length numbers - 1 do
+        for b in boards do
+        let result = boardWins numbers[..i] b
+        if Option.isSome result then yield result
+    }
+    |> Seq.head
+    |> fun (Some bla) -> bla
+    |> sprintf "%A"
 
 let solution2 = ""
