@@ -28,12 +28,13 @@ let boardWins (calledNumbers : int array) (board : Board) : int option =
     let rowSlices = seq { for i in 0..4 do yield (array2D board)[i,*]}
     let colSlices = seq { for i in 0..4 do yield (array2D board)[*,i]}
     let slices = Seq.append rowSlices colSlices
-    let allNumbersAreCalled slice =
+
+    let sliceIsWin slice =
         Array.map (fun el -> Array.contains el calledNumbers) slice
         |> Array.forall id
 
     let winningSlices =
-        seq {for slice in slices do if allNumbersAreCalled slice then yield slice}
+        seq {for slice in slices do if sliceIsWin slice then yield slice}
 
     let unmarkedSum () =
         Array.concat board
@@ -43,17 +44,39 @@ let boardWins (calledNumbers : int array) (board : Board) : int option =
     Seq.tryHead winningSlices
     |> Option.map (fun slice -> unmarkedSum () * Seq.last calledNumbers)
 
+let rec boardsInOrderOfWins (numbers : int array) (calledIndex : int) (boards : Board list) : int list =
+    if Seq.isEmpty boards || calledIndex > Seq.length numbers then List.empty
+    else
+        let winners =
+            seq {
+                for board in boards do
+                let result = boardWins numbers[..calledIndex] board
+                if Option.isSome result then yield (board, Option.get result)
+            }
+
+        if Seq.isEmpty winners then
+            boardsInOrderOfWins numbers (calledIndex + 1) boards
+        else
+            // printfn "board %A won with %i at %A" board result numbers[..calledIndex]
+            let newBoards =
+                List.except (Seq.map fst winners) boards
+
+            List.append
+                (Seq.map snd winners |> List.ofSeq)
+                (boardsInOrderOfWins numbers (calledIndex + 1) newBoards)
+
 let solution1 =
     let numbers = (Array.head input).Split "," |> Array.map int
     let boards = parseBoards <| Array.tail input
-    seq {
-        for i in 0 .. Array.length numbers - 1 do
-        for b in boards do
-        let result = boardWins numbers[..i] b
-        if Option.isSome result then yield result
-    }
-    |> Seq.head
-    |> fun (Some bla) -> bla
-    |> sprintf "%A"
 
-let solution2 = ""
+    boardsInOrderOfWins numbers 0 boards
+    |> Seq.head
+    |> sprintf "day4-1: %A"
+
+let solution2 =
+    let numbers = (Array.head input).Split "," |> Array.map int
+    let boards = parseBoards <| Array.tail input
+
+    boardsInOrderOfWins numbers 0 boards
+    |> Seq.last
+    |> sprintf "day4-2: %A"
