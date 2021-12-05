@@ -57,5 +57,32 @@ let solution1 =
     |> Map.count
     |> sprintf "%A"
 
+// ----------------------------------------------------------------------------
 
-let solution2 = ""
+let range (i : int) (j : int) : int list =
+    if i < j then [i..j] else [i .. -1 .. j]
+
+let linePoints2 (line : Line) : Point seq =
+    if line.From.X = line.To.X then
+        seq { for y in range line.From.Y line.To.Y do yield {X=line.From.X; Y=y} }
+    else if line.From.Y = line.To.Y then
+        seq { for x in range line.From.X line.To.X do yield {X=x; Y=line.From.Y} }
+    else
+        let xRange = range line.From.X line.To.X
+        let yRange = range line.From.Y line.To.Y
+        seq {
+            for x, y in Seq.zip xRange yRange do
+            yield {X=x; Y=y}
+        }
+
+let accumulate2 (ventsMap : Map<Point, int>) (line : Line) : Map<Point, int> =
+    let points = linePoints2 line
+    Seq.fold markPointOnMap ventsMap points
+
+let solution2 =
+    input
+    |> Array.map parse
+    |> Array.fold accumulate2 Map.empty
+    |> Map.filter (fun _ n -> n >= 2)
+    |> Map.count
+    |> sprintf "%A"
