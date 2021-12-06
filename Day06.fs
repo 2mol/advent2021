@@ -1,6 +1,5 @@
 module Day06
 
-open System
 open System.IO
 
 #nowarn "25"
@@ -27,9 +26,9 @@ let step (fish : int seq) : int seq =
 //         printfn "at generation %i" i
 //         step fish
 //     ) input [1..80]
-//     // step (step input) Seq.reduce
+//     // step (step input) reduce
 //     // |> Seq.length
-//     |> Seq.toList
+//     |> toList
 //     |> sprintf "%A"
 
 let applyN (n : int) (f: 'T -> 'T) (initialState : 'T) : 'T =
@@ -68,6 +67,20 @@ let rec reproduceN (n : int) (fish : int seq) : int =
     //     let copiesOfOriginalGroup = div
     //     0
 
+let rec countN (n : int) (fish : int seq) : int =
+    let (div, rem) = System.Math.DivRem(n, 7)
+    if div = 0 then
+        Seq.length fish + Seq.length (Seq.filter (fun n -> n - rem < 0) fish)
+    else if div = 1 then
+        // Seq.map () (seq {})
+        countN rem fish + countN (n - 7 * div - 2) fish
+    else
+        countN (n - 7) fish + countN (n - 9) fish
+
+// 1 cycle -> double  og og
+// 2 (1 more) -> quadr og og og og
+
+
 let solution1 =
     // first generation evolution:
     // 1. (div) how many full cycles did the group do?
@@ -81,7 +94,8 @@ let solution1 =
 
     [3;4;3;1;2]
     // |> applyN 18 step
-    |> reproduceN 80
+    input
+    |> countN 80
     // |> Seq.length
     |> sprintf "%A"
 
