@@ -85,19 +85,35 @@ let calcResidual (fish : int seq) (rem : int) =
     Seq.filter (fun n -> n - rem < 0) fish
     |> Seq.length
 
-let rec solve (fish : int seq) (n : int) : int  =
-    let (div, rem) = System.Math.DivRem(n, 7)
-    let groupCopies = max div 0
+let rec solve (cache : Map<int, uint64>) (fish : int seq) (n : int) : uint64 * Map<int, uint64> =
+    match Map.tryFind n cache with
+        | Some value ->
+            value, cache
+        | None ->
+            let (div, rem) = System.Math.DivRem(n, 7)
+            let groupCopies = max div 0
 
-    let selfPlusResidual = 5 + calcResidual fish rem
-    let children =
-        Array.zeroCreate groupCopies
-        |> Array.mapi (fun i _ -> n - 9 - 7 * i)
-        |> Array.fold (fun acc n1 -> acc + solve fish n1) 0
-    selfPlusResidual + children
+            let selfPlusResidual = (Seq.length fish) + calcResidual fish rem
+
+            let folder (acc, subCache) newN =
+                let (subResult, subSubCache) = solve subCache fish newN
+                let combinedCache =
+                    Map.fold (fun acc key value -> Map.add key value acc) subCache subSubCache
+
+                acc + subResult, combinedCache
+
+            let children, newCache =
+                Array.zeroCreate groupCopies
+                |> Array.mapi (fun i _ -> n - 9 - 7 * i)
+                |> Array.rev
+                |> Array.fold folder (0UL, cache)
+
+            let solution = (uint64) selfPlusResidual + (uint64) children
+
+            solution, Map.add n solution newCache
 
 let solution2 =
-    input
-    // [3;4;3;1;2]
-    |> fun l -> solve l 80  // + remainders
-    |> sprintf "%A"
+    // let input = [3;4;3;1;2]
+    solve Map.empty input 256
+    |> fst // + remainders
+    |> sprintf "%i"
