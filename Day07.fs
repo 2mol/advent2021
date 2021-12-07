@@ -21,5 +21,17 @@ let solution1 =
     |> sprintf "%A"
 
 
+let rec escalatingCost n =
+    if n = 0 then 0
+    else n + escalatingCost (n - 1)
 
-let solution2 = ""
+let calcCost' (positions : int seq) (target : int) : int =
+    positions
+    |> Seq.map (fun pos -> abs (pos - target))
+    |> Seq.map escalatingCost
+    |> Seq.sum
+
+let solution2 =
+    Seq.map (calcCost' input) [0..1941]
+    |> Seq.min
+    |> sprintf "%A"
