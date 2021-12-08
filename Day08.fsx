@@ -116,4 +116,4 @@ let solve (measurements, output) =
 input
 |> Array.map solve
 |> Array.sum
-|> printfn "day8-1: %A"
+|> printfn "day8-2: %A"
