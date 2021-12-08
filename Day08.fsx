@@ -28,8 +28,7 @@ input
 |> Array.sum
 |> printfn "day8-1: %i"
 
-// ----------------------------------------------------------------------------
-// ----------- functions that _should_ be in the standard library -------------
+// ----------- ~ Functions that should be in the standard library ~ -----------
 
 let split (sep : string) (str : string) : string array = str.Split(sep)
 
@@ -67,44 +66,38 @@ let deduceObviousDigit (chars : char Set) : int option =
     | 7 -> Some 8
     | _ -> None
 
-let deduceLength5and6 (chars : char Set) (digitToChars : Map<int, char Set>) : int option =
-    let intersectionSizeWith n =
-        Map.find n digitToChars
+let deduceLength5and6 (chars : char Set) (digitMap : Map<int, char Set>) : int option =
+    let intersectSizeWith n =
+        Map.find n digitMap
         |> Set.intersect chars
         |> Set.count
 
     match Set.count chars with
     | 5 ->
-        if intersectionSizeWith 1 = 2 then
-            Some 3
-        else if intersectionSizeWith 4 = 3 then
-            Some 5
-        else
-            Some 2
+        if      intersectSizeWith 1 = 2 then Some 3
+        else if intersectSizeWith 4 = 3 then Some 5
+        else                                 Some 2
     | 6 ->
-        if intersectionSizeWith 4 = 4 then
-            Some 9
-        else if intersectionSizeWith 1 = 2 then
-            Some 0
-        else
-            Some 6
+        if      intersectSizeWith 4 = 4 then Some 9
+        else if intersectSizeWith 1 = 2 then Some 0
+        else                                 Some 6
     | _ -> None
 
-let deduceObviousDigits (charsToDigit : Map<char Set, int>) (chars : char Set) : Map<char Set, int> =
-    mapInsertOption chars (deduceObviousDigit chars) charsToDigit
+let deduceObviousDigits (charMap : Map<char Set, int>) (chars : char Set) : Map<char Set, int> =
+    mapInsertOption chars (deduceObviousDigit chars) charMap
 
-let deduceNonObviousDigits (charsToDigit : Map<char Set, int>) (chars : char Set) : Map<char Set, int> =
-    mapInsertOption chars (deduceLength5and6 chars (reverse charsToDigit)) charsToDigit
+let deduceNonObviousDigits (charMap : Map<char Set, int>) (chars : char Set) : Map<char Set, int> =
+    mapInsertOption chars (deduceLength5and6 chars (reverse charMap)) charMap
 
 let deduceAllDigits (measurements : char Set array) : Map<char Set, int> =
-    let simpleCharsToDigit = Array.fold deduceObviousDigits Map.empty measurements
-    let allCharsToDigit = Array.fold deduceNonObviousDigits simpleCharsToDigit measurements
-    allCharsToDigit
+    let basicCharMap = Array.fold deduceObviousDigits Map.empty measurements
+    let fullCharMap = Array.fold deduceNonObviousDigits basicCharMap measurements
+    fullCharMap
 
 let solve (measurements : char Set array, output) : int =
-    let mapping = deduceAllDigits measurements
-    let digitCharacters = Array.choose (fun chars -> Map.tryFind chars mapping) output
-    String.Join("", digitCharacters) |> int
+    let charMap = deduceAllDigits measurements
+    let digits = Array.choose (fun chars -> Map.tryFind chars charMap) output
+    String.Join("", digits) |> int
 
 let parse (line: string) : char Set array * char Set array=
     let [|left; right|] =
