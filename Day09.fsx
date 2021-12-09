@@ -1,7 +1,5 @@
 #nowarn "25"
 
-open System
-
 // live reload with:
 // -----------------
 // ls Day09.fsx | entr -n dotnet fsi Day09.fsx
