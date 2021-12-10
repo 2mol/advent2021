@@ -92,4 +92,4 @@ input
 |> Array.map scoreLine
 |> Array.sort
 |> fun a -> a[24]
-|> printfn "day10-2: %A"
+|> printfn "day10-2: %i"
