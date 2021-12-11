@@ -14,6 +14,9 @@ module Map =
     let merge m1 m2 =
         List.concat [Map.toList m1; Map.toList m2] |> Map.ofList
 
+    let mapValues f m =
+        Map.map (fun _ v -> f v) m
+
     let reverse (m: Map<'Key,'T>) : Map<'T, 'Key> =
         Map.toList m
         |> List.map (fun (a,b) -> b,a)
