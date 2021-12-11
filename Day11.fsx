@@ -121,28 +121,29 @@ let rec step n (flashCount, octopuses) =
 let octopuses =
     input
     |> ingestLines
-// |> fun octopuses -> List.fold step (0, octopuses) [1.100]
-// |> fst
 
-// printfn "%s" <| showoff octopuses
+// let (flashCount, _) = step 100 (0, octopuses)
 
-let (flashCount, _) = step 100 (0, octopuses)
+// Console.SetCursorPosition(0, Console.CursorTop + 14)
+// printf "day 11-1: %i\n\n" flashCount
+
+// ----------------------------------------------------------------------------
+
+let rec step' n octopuses =
+    let haveFlashed, nextopuses =
+        Map.mapValues ((+) 1) octopuses
+        |> stepFlashes Set.empty
+
+    Console.SetCursorPosition(0, Console.CursorTop + 4)
+    printfn "%s\n\n\n" <| showoff nextopuses
+    System.Threading.Thread.Sleep 50
+
+    if Set.count haveFlashed = 100 then
+        n
+    else
+        step' (n+1) nextopuses
+
+let allFlashStep = step' 1 octopuses
 
 Console.SetCursorPosition(0, Console.CursorTop + 14)
-printf "day 11-1: %i\n\n" flashCount
-
-// step <| step (0, octopuses)
-
-// for i in [1..100] do
-//    let bla = step (0, octopuses)
-
-// |> fun m -> bumpNeighbours m (0,0)
-// |> showoff
-// |> printfn "%s"
-
-// List.fold (
-//     fun a b ->
-//         printfn "%i" a
-//         System.Threading.Thread.Sleep 50
-//         a+b
-//     ) 0 [1..100]
+printf "day 11-2: %i\n\n" allFlashStep
