@@ -136,10 +136,10 @@ let rec step' n octopuses =
 
     Console.SetCursorPosition(0, Console.CursorTop + 4)
     printfn "%s\n\n\n" <| showoff nextopuses
-    System.Threading.Thread.Sleep 50
+    System.Threading.Thread.Sleep 100
 
     if Set.count haveFlashed = 100 then
-        n
+        step' (n+1) nextopuses
     else
         step' (n+1) nextopuses
 
