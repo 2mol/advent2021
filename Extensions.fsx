@@ -5,7 +5,8 @@ module Array =
         (folder: (int -> 'State -> 'T -> 'State))
         (state : 'State)
         (array : 'T array)
-        : 'State
+        :
+        'State
         =
         Array.indexed array
         |> Array.fold (fun state (i, a) -> folder i state a) state
@@ -30,7 +31,13 @@ module Map =
         | Some v -> Map.add key v map
         | None -> map
 
-    let addToList (key : 'Key) (value : 'T) (map: Map<'Key,'T list>) : Map<'Key,'T list> =
+    let addToList
+        (key : 'Key)
+        (value : 'T)
+        (map: Map<'Key,'T list>)
+        :
+        Map<'Key,'T list>
+        =
         if not <| Map.containsKey key map then
             Map.add key [value] map
         else
