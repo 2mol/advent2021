@@ -23,13 +23,12 @@ let parseCoords line =
     int a, int b
 
 let parseFold line =
-    let [|a; b|] = String.split "=" line
-    a, int b
+    let [|instruction; splitCoord|] = String.split "=" line
+    instruction, int splitCoord
 
 let coords =
     input[0..idx-1]
     |> List.map parseCoords
-// let folds = input[idx+1..]
 
 let maxx = 1 + fst (List.maxBy fst coords)
 let maxy = 1 + snd (List.maxBy snd coords)
@@ -71,11 +70,11 @@ let printGrid (g : char[,]) =
         printfn ""
 
 let folded =
-    foldAlongY 7 grid
-    |> foldAlongX 5
+    foldAlongX 655 grid
+    // |> foldAlongX 5
 
-printGrid grid
-printGrid folded
+// printGrid grid
+// printGrid folded
 
 folded
 |> Array2D.flatten
