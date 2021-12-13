@@ -1,5 +1,7 @@
 // ----------- ~ Functions that should be in the standard library ~ -----------
 
+let always = (fun x _ -> x)
+
 module Array =
     let foldi
         (folder: (int -> 'State -> 'T -> 'State))
@@ -10,6 +12,9 @@ module Array =
         =
         Array.indexed array
         |> Array.fold (fun state (i, a) -> folder i state a) state
+
+module Array2D =
+    let flatten (arr: 'T [,]) = arr |> Seq.cast<'T> |> Seq.toArray
 
 module Tuple =
     let flip (a, b) = (b, a)
