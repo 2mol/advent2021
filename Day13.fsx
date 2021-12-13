@@ -30,6 +30,10 @@ let coords =
     input[0..idx-1]
     |> List.map parseCoords
 
+let folds =
+    input[idx+1..]
+    |> List.map parseFold
+
 let maxx = 1 + fst (List.maxBy fst coords)
 let maxy = 1 + snd (List.maxBy snd coords)
 
@@ -62,21 +66,20 @@ let foldAlongY ySplit (g : char[,]) =
 
     half1
 
-
 let printGrid (g : char[,]) =
     for j in [0..Array2D.length2 g - 1] do
         for i in [0..Array2D.length1 g - 1] do
             printf "%c" g[i,j]
         printfn ""
 
-let folded =
-    foldAlongX 655 grid
-    // |> foldAlongX 5
+let calcMarks (g : char[,]) =
+    Array2D.flatten g
+    |> Array.sumBy (fun a -> if a = '#' then 1 else 0)
 
-// printGrid grid
-// printGrid folded
+let foldPaper (g : char[,]) (instruction, splitCoord) =
+    match instruction with
+    | "fold along x" -> foldAlongX splitCoord g
+    | "fold along y" -> foldAlongY splitCoord g
 
-folded
-|> Array2D.flatten
-|> Array.sumBy (fun a -> if a = '#' then 1 else 0)
-|> printfn "%A"
+List.fold foldPaper grid folds
+|> printGrid
