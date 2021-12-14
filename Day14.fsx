@@ -37,6 +37,5 @@ let iterate (str : string) =
 
 applyN 10 iterate template
 |> Seq.countBy id
-|> Seq.minBy snd
-// |> String.length
-|> printfn "%A"
+|> fun s -> snd (Seq.maxBy snd s) - snd (Seq.minBy snd s)
+|> printfn "%i"
