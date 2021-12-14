@@ -2,6 +2,10 @@
 
 let always = (fun x _ -> x)
 
+let applyN (n : int) (f: 'T -> 'T) (initialState : 'T) : 'T =
+    // Note: applyN 0 will naturally just return initialState.
+    List.fold (fun state _ -> f state) initialState [1..n]
+
 module Array =
     let foldi
         (folder: (int -> 'State -> 'T -> 'State))
