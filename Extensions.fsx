@@ -22,10 +22,28 @@ module Array2D =
 
 module Tuple =
     let flip (a, b) = (b, a)
+    let mapFst f (a, b) = (f a, b)
+    let mapSnd f (a, b) = (a, f b)
 
 module Map =
-    let merge m1 m2 =
-        List.concat [Map.toList m1; Map.toList m2] |> Map.ofList
+    let merge map1 map2 =
+        List.concat [Map.toList map1; Map.toList map2] |> Map.ofList
+
+    let mergeMany maps =
+        Seq.map Map.toSeq maps
+        |> Seq.concat
+        |> Map.ofSeq
+
+    let mergeCounts (map1 : Map<'Key, int64>) (map2 : Map<'Key, int64>) : Map<'Key, int64> =
+    // let mergeCounts map1 map2 =
+        let folder acc k v =
+            match Map.tryFind k acc with
+            | Some v0 -> Map.add k (v0 + v) acc
+            | None -> Map.add k v acc
+        Map.fold folder map1 map2
+
+    let mergeCountsMany (maps : Map<'Key, int64> seq) : Map<'Key, int64> =
+        Seq.fold mergeCounts Map.empty maps
 
     let mapValues f m =
         Map.map (fun _ v -> f v) m
@@ -54,3 +72,5 @@ module Map =
 
 module String =
     let split (sep : string) (str : string) : string array = str.Split(sep)
+
+    // let reverse (s : string) = s |> Seq.toArray |> Array.rev |> System.String
