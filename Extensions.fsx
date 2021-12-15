@@ -7,18 +7,16 @@ let applyN (n : int) (f: 'T -> 'T) (initialState : 'T) : 'T =
     List.fold (fun state _ -> f state) initialState [1..n]
 
 module Array =
-    let foldi
-        (folder: (int -> 'State -> 'T -> 'State))
-        (state : 'State)
-        (array : 'T array)
-        :
-        'State
-        =
+    let foldi (folder: (int -> 'State -> 'T -> 'State)) (state : 'State) (array : 'T array)
+        : 'State =
         Array.indexed array
         |> Array.fold (fun state (i, a) -> folder i state a) state
 
 module Array2D =
     let flatten (arr: 'T [,]) = arr |> Seq.cast<'T> |> Seq.toArray
+
+    let ofArrays (a : 'T array array) =
+        Array2D.init (Array.length (Array.head a)) (Array.length a) (fun i j -> a[j][i])
 
 module Tuple =
     let flip (a, b) = (b, a)
@@ -34,8 +32,10 @@ module Map =
         |> Seq.concat
         |> Map.ofSeq
 
-    let mergeCounts (map1 : Map<'Key, int64>) (map2 : Map<'Key, int64>) : Map<'Key, int64> =
+    // TODO: figure out how to make this generic, i.e. work with _all_ types that support (+)
+    // In ./Day14.fsx there were problems with the generic type signature:
     // let mergeCounts map1 map2 =
+    let mergeCounts (map1 : Map<'Key, int64>) (map2 : Map<'Key, int64>) : Map<'Key, int64> =
         let folder acc k v =
             match Map.tryFind k acc with
             | Some v0 -> Map.add k (v0 + v) acc
@@ -48,6 +48,7 @@ module Map =
     let mapValues f m =
         Map.map (fun _ v -> f v) m
 
+    // TODO: this might be confusing w.r.t List.reverse, so it could also be renamed Map.flip
     let reverse (map : Map<'Key,'T>) : Map<'T, 'Key> =
         Map.toList map
         |> List.map Tuple.flip
@@ -58,13 +59,8 @@ module Map =
         | Some v -> Map.add key v map
         | None -> map
 
-    let addToList
-        (key : 'Key)
-        (value : 'T)
-        (map: Map<'Key,'T list>)
-        :
-        Map<'Key,'T list>
-        =
+    let addToList (key : 'Key) (value : 'T) (map: Map<'Key,'T list>)
+        : Map<'Key,'T list> =
         if not <| Map.containsKey key map then
             Map.add key [value] map
         else
