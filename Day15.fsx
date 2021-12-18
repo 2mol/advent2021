@@ -16,44 +16,48 @@ let input =
     |> Seq.toArray
     |> Array.map Seq.toArray
     |> Array2D.ofArrays
-    |> Array2D.map (Char.GetNumericValue >> int)
-
-let rec bruteForce (pathSoFar, costSoFar) grid =
-    let (x, y) = List.head pathSoFar
-    if x < 0 || x >= Array2D.length1 grid || y < 0 || y >= Array2D.length2 grid then
-        // illegal move
-        []
-    else if (x, y) = (Array2D.length1 grid - 1, Array2D.length2 grid - 1) then
-        // reached the end, we're done
-        // printfn "found a path!\n %A" (pathSoFar, costSoFar)
-        [pathSoFar, costSoFar]
-    else
-        let nextMoves =
-            [ x+1, y; x-1, y; x, y+1; x, y-1 ]
-            |> List.filter (fun coord -> not (List.contains coord pathSoFar))
-
-        let branchingPaths =
-            [for coord in nextMoves do yield! bruteForce (coord::pathSoFar, costSoFar + grid[x, y]) grid]
-
-        if List.isEmpty branchingPaths then
-            []
-        else
-            let cheapestPath, cheapestPathCost =
-                List.minBy snd branchingPaths
-
-            [cheapestPath, cheapestPathCost]
-
-let rec gentleForce (pathSoFar, costSoFar) grid map =
-    let (x, y) = List.head pathSoFar
-    match Map.tryFind coord map with
-    | Some (path, cost) -> (path, cost)
-    | None ->
-        let minimalPath =
-            bruteForce ([(0,0)], 0) grid
-            |> List.minBy snd
+    |> Array2D.map (Char.GetNumericValue >> uint)
 
 
-input[2.., 2..]
-// |> bruteForce ([(0,0)], 0)
-// |> List.minBy snd
+type Node = int*int
+type Cost = uint
+
+let getNeighbours x y =
+    let tryGet (i,j) : option<Node * uint>=
+        try Some input[i,j] |> Option.map (fun cost -> (i,j), cost)
+        with _ -> None
+
+    [ x+1, y; x-1, y; x, y+1; x, y-1 ]
+    |> List.choose tryGet
+    |> Set.ofList
+
+
+let graph : Map<Node, (Node*Cost) Set> =
+    [
+        for x in 0..(Array2D.length1 input - 1) do
+        for y in 0..(Array2D.length2 input - 1) do
+        yield (x, y) , getNeighbours x y
+    ]
+    |> Map.ofList
+
+
+let initDist : Map<Node, Cost> =
+    graph
+    |> Map.mapValues (fun _ -> UInt32.MaxValue)
+    |> Map.add (0,0) 0u
+
+let initQueue : Set<Node> = Map.keys initDist |> Set.ofSeq
+
+let rec djikstra (queue : Set<Node>) (dist : Map<Node, Cost>) =
+    let u =
+        Set.toList queue
+        |> List.minBy (fun e -> Map.find e dist)
+    let newQueue = Set.remove u queue
+    let neighbours =
+        Map.find u graph
+        |> Set.filter (fun (n, _) -> Set.contains n newQueue)
+    ()
+
+
+initDist
 |> printfn "%A"
