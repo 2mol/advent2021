@@ -31,7 +31,6 @@ let getNeighbours x y =
     |> List.choose tryGet
     |> Set.ofList
 
-
 let graph : Map<Node, (Node*Cost) Set> =
     [
         for x in 0..(Array2D.length1 input - 1) do
@@ -40,7 +39,6 @@ let graph : Map<Node, (Node*Cost) Set> =
     ]
     |> Map.ofList
 
-let startNode = (0,0)
 let goalNode = (Array2D.length1 input - 1, Array2D.length2 input - 1)
 
 let initDist : Map<Node, Cost> =
@@ -52,11 +50,16 @@ let initDist : Map<Node, Cost> =
 
 let initQueue : Set<Node> = Map.keys initDist |> Set.ofSeq
 
-let rec djikstra (queue : Set<Node>) (distances : Map<Node, Cost>) =
-    let u =
-        Set.toList queue
-        |> List.minBy (fun e -> Map.find e distances)
+let manhatten (x1, y1) (x2, y2) =
+    abs (x2 - x1) + abs (y2 - y1)
 
+let rec djikstra (queue : Set<Node>) (distances : Map<Node, Cost>) (fronteer : Node) : Cost =
+    let u =
+        queue
+        |> Set.toList
+        |> List.minBy (fun e -> Map.find e distances)
+    // printfn "looking at %A, cost %A" u (Map.find u distances)
+    // printfn "fronteer %A" fronteer
     if u = goalNode then
         Map.find u distances
     else
@@ -69,12 +72,21 @@ let rec djikstra (queue : Set<Node>) (distances : Map<Node, Cost>) =
                 for (v, cost) in neighbours do
                 let alt = Map.find u distances + cost
                 if alt < Map.find v distances then
-                    printfn "found a shorter path to %A: %i" v alt
+                    // printfn "found a shorter path to %A: %i" v alt
                     yield v, alt
             ] |> Map.ofList
 
-        djikstra (Set.remove u queue) (Map.merge distances altDistances)
+        let newFronteer =
+            ( max (fst fronteer) (fst u - 9)
+            , max (snd fronteer) (snd u - 9)
+            )
+
+        let newQueue =
+            Set.remove u queue
+            |> Set.filter (fun (x, y) -> x >= fst fronteer && y >= snd fronteer)
+
+        djikstra newQueue (Map.merge distances altDistances) newFronteer
 
 
-djikstra initQueue initDist
+djikstra initQueue initDist (0,0)
 |> printfn "%A"
