@@ -25,7 +25,8 @@ module Tuple =
 
 module Map =
     let merge map1 map2 =
-        List.concat [Map.toList map1; Map.toList map2] |> Map.ofList
+        Map.fold (fun map k v -> Map.add k v map) map1 map2
+        // List.concat [Map.toList map1; Map.toList map2] |> Map.ofList
 
     let mergeMany maps =
         Seq.map Map.toSeq maps

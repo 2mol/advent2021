@@ -33,18 +33,33 @@ let getNeighbours x y =
     |> List.choose tryGet
     |> Set.ofList
 
+let xmax = Array2D.length1 input - 1
+let ymax = Array2D.length2 input - 1
+
+let addAndWrap c m n =
+    let sum = c + (uint)m + (uint)n
+    if sum <= 9u then sum else sum - 9u
+
 let graph : IDictionary<Node, (Node*Cost) Set> =
     [
-        for x in 0..(Array2D.length1 input - 1) do
-        for y in 0..(Array2D.length2 input - 1) do
-        yield (x, y) , getNeighbours x y
+        for n in 0..4 do
+        for m in 0..4 do
+        yield!
+            [
+                for x in 0..xmax do
+                for y in 0..ymax do
+                let neighbours =
+                    getNeighbours x y
+                    |> Set.map (fun (node, c) -> (node, addAndWrap c m n))
+                yield (x + n * xmax, y + n * ymax) , neighbours
+            ]
     ]
     |> dict
 
-let goalNode = (Array2D.length1 input - 1, Array2D.length2 input - 1)
+let goalNode = (5 * xmax, 5 * ymax)
 
 let initDist : Map<Node, Cost> =
-    ((0,0), 0u) :: [for kv in graph do yield (kv.Key, UInt32.MaxValue - 10u)]
+    ((0,0), 0u) :: [for kv in graph do if kv.Key <> (0,0) then yield (kv.Key, UInt32.MaxValue - 10u)]
     |> Map.ofList
 
 let initQueue : Set<Node> = Map.keys initDist |> Set.ofSeq
