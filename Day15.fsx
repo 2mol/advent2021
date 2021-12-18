@@ -40,24 +40,41 @@ let graph : Map<Node, (Node*Cost) Set> =
     ]
     |> Map.ofList
 
+let startNode = (0,0)
+let goalNode = (Array2D.length1 input - 1, Array2D.length2 input - 1)
 
 let initDist : Map<Node, Cost> =
     graph
-    |> Map.mapValues (fun _ -> UInt32.MaxValue)
+    // hacky bullshit to act as "infinity", but without overflowing
+    // in the `dist[bla] + 9` case
+    |> Map.mapValues (fun _ -> UInt32.MaxValue - 10u)
     |> Map.add (0,0) 0u
 
 let initQueue : Set<Node> = Map.keys initDist |> Set.ofSeq
 
-let rec djikstra (queue : Set<Node>) (dist : Map<Node, Cost>) =
+let rec djikstra (queue : Set<Node>) (distances : Map<Node, Cost>) =
     let u =
         Set.toList queue
-        |> List.minBy (fun e -> Map.find e dist)
-    let newQueue = Set.remove u queue
-    let neighbours =
-        Map.find u graph
-        |> Set.filter (fun (n, _) -> Set.contains n newQueue)
-    ()
+        |> List.minBy (fun e -> Map.find e distances)
+
+    if u = goalNode then
+        Map.find u distances
+    else
+        let neighbours =
+            Map.find u graph
+            |> Set.filter (fun (v, _) -> Set.contains v queue)
+
+        let altDistances =
+            [
+                for (v, cost) in neighbours do
+                let alt = Map.find u distances + cost
+                if alt < Map.find v distances then
+                    printfn "found a shorter path to %A: %i" v alt
+                    yield v, alt
+            ] |> Map.ofList
+
+        djikstra (Set.remove u queue) (Map.merge distances altDistances)
 
 
-initDist
+djikstra initQueue initDist
 |> printfn "%A"
