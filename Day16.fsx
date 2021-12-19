@@ -44,10 +44,11 @@ type Packet =
         Content : Content
     }
 and Content =
-    | Literal of int
+    | Literal of int64
     | Operator of Packet list
 
 let bitsToInt str = Convert.ToInt32(str, 2)
+let bitsToInt64 str = Convert.ToInt64(str, 2)
 
 let rec extractLiteral ((str, acc) : string * (string list)) : string * string =
     if str[0] = '0' then
@@ -70,11 +71,12 @@ let rec parse (limit : int) (str : string) : (Packet list) * string =
         | 4 ->
             // Literal packet
             let literalBits, literalRest = extractLiteral (str[6..], [])
+            // printfn "wanna parse %s to int" literalBits
             let packet =
                 {
                     Version = version
                     TypeId = typeId
-                    Content = Literal (bitsToInt literalBits)
+                    Content = Literal (bitsToInt64 literalBits)
                 }
             if limit = 1 then
                 [packet], literalRest
