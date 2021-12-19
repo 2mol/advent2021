@@ -120,13 +120,30 @@ let rec sumVersionNumbers (packet : Packet) =
     | Operator subPackets ->
         packet.Version + (List.sumBy sumVersionNumbers subPackets)
 
+let rec value (packet : Packet) =
+    match packet.Content with
+    | Literal v -> v
+    | Operator subPackets ->
+        match packet.TypeId with
+        | 0 -> List.sumBy value subPackets
+        | 1 -> List.fold (fun acc p -> acc*(value p)) 1 subPackets
+        | 2 -> List.map value subPackets |> List.min
+        | 3 -> List.map value subPackets |> List.max
+        | 5 -> if value subPackets[0] > value subPackets[1] then 1 else 0
+        | 6 -> if value subPackets[0] < value subPackets[1] then 1 else 0
+        | 7 -> if value subPackets[0] = value subPackets[1] then 1 else 0
 
 let inputBits =
     input
     |> Array.map toBin
     |> String.concat ""
 
+// parse 0 inputBits
+// |> fst
+// |> List.sumBy sumVersionNumbers
+// |> printfn "day16-1: %i"
+
 parse 0 inputBits
-|> fst
-|> List.sumBy sumVersionNumbers
-|> printfn "%A"
+|> fst |> fun a -> a[0]
+|> value
+|> printfn "day16-2: %A"
