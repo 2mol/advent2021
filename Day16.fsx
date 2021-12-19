@@ -150,7 +150,7 @@ let pretty (packet : Packet) : string =
             (value packet) packet.TypeId (List.length sub) //(List.map value sub)
 
 let rec pretties' depth packets =
-    if depth > 20 then
+    if depth > 2 then
         printfn "[...]"
     else
         for packet in packets do
