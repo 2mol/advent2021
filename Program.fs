@@ -16,7 +16,5 @@
         // "day 5-2", Day15.solution2
     ]
 
-Day15.solution2
-
 // for day, solution in solutions do
 //     printfn "%s: %s" day solution
