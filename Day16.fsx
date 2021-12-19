@@ -140,18 +140,13 @@ let inputBits =
     |> Array.map toBin
     |> String.concat ""
 
-// parse 0 inputBits
-// |> fst
-// |> List.sumBy sumVersionNumbers
-// |> printfn "day16-1: %i"
-
 let pretty (packet : Packet) : string =
     match packet.Content with
     | Literal v ->
-        sprintf "packet lit (val %i) type %i"
-            v packet.TypeId
+        sprintf "∟ %i"
+            v
     | Operator sub ->
-        sprintf "packet op (val %i) type %i - children: %i"
+        sprintf "op (val %i) type %i - children: %i"
             (value packet) packet.TypeId (List.length sub) //(List.map value sub)
 
 let rec pretties' depth packets =
@@ -169,9 +164,15 @@ let rec pretties' depth packets =
 
 let pretties p = pretties' 0 [p]
 
-inputBits
-|> parse 0
-|> fst
+let packets =
+    parse 0 inputBits
+    |> fst
+
+packets
+|> List.sumBy sumVersionNumbers
+|> printfn "day16-1: %i"
+
+packets
 |> List.head
 |> (fun p ->
     let (Operator ps) = p.Content
@@ -194,21 +195,10 @@ inputBits
     )
 |> fun a -> a[7]
 |> pretties
-// |> (fun p ->
-//     let (Operator ps) = p.Content
-//     ps
-//     )
-// |> fun a -> a[2]
-// |> (fun p ->
-//     let (Operator ps) = p.Content
-//     ps
-//     )
-// |> fun a -> a[1]
-// |> pretties 0
-// |> pretty |> printfn "%s"
-// // |> List.map value
-// |> fun p -> p.TypeId
-// // |> List.map (fun p -> )
-// // |> List.sum
-// // |> List.map (fun p -> p.TypeId)
-// |> printfn "day16-2: %A"
+
+
+
+packets
+|> List.head
+|> value
+|> printfn "day16-2: %A"
