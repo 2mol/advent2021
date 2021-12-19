@@ -174,29 +174,7 @@ packets
 
 packets
 |> List.head
-|> (fun p ->
-    let (Operator ps) = p.Content
-    ps
-    )
-|> List.head
-|> (fun p ->
-    let (Operator ps) = p.Content
-    ps
-    )
-|> fun a -> a[3]
-|> (fun p ->
-    let (Operator ps) = p.Content
-    ps
-    )
-|> fun a -> a[7]
-|> (fun p ->
-    let (Operator ps) = p.Content
-    ps
-    )
-|> fun a -> a[7]
 |> pretties
-
-
 
 packets
 |> List.head
