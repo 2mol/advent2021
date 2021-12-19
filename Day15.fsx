@@ -42,35 +42,29 @@ let addAndWrap c m n =
 
 let graph : IDictionary<Node, (Node*Cost) Set> =
     [
-        for n in 0..4 do
-        for m in 0..4 do
-        yield!
-            [
-                for x in 0..xmax do
-                for y in 0..ymax do
-                let neighbours =
-                    getNeighbours x y
-                    |> Set.map (fun (node, c) -> (node, addAndWrap c m n))
-                yield (x + n * xmax, y + n * ymax) , neighbours
-            ]
+        for x in 0..xmax do
+        for y in 0..ymax do
+        let neighbours =
+            getNeighbours x y
+            // |> Set.map (fun (node, c) -> (node, addAndWrap c m n))
+        yield (x , y ) , neighbours
     ]
     |> dict
 
-let goalNode = (5 * xmax, 5 * ymax)
+let goalNode = (xmax, ymax)
 
 let initDist : Map<Node, Cost> =
     ((0,0), 0u) :: [for kv in graph do if kv.Key <> (0,0) then yield (kv.Key, UInt32.MaxValue - 10u)]
     |> Map.ofList
 
-let initQueue : Set<Node> = Map.keys initDist |> Set.ofSeq
+let initQueue = Map.keys initDist |> List.ofSeq
 
 let manhatten (x1, y1) (x2, y2) =
     abs (x2 - x1) + abs (y2 - y1)
 
-let rec djikstra (queue : Set<Node>) (distances : Map<Node, Cost>) (fronteer : Node) : Cost =
+let rec djikstra (queue : Node list) (distances : Map<Node, Cost>) (fronteer : Node) : Cost =
     let u =
         queue
-        |> Set.toList
         |> List.minBy (fun e -> Map.find e distances)
     // printfn "looking at %A, cost %A" u (Map.find u distances)
     // printfn "fronteer %A" fronteer
@@ -79,7 +73,7 @@ let rec djikstra (queue : Set<Node>) (distances : Map<Node, Cost>) (fronteer : N
     else
         let neighbours =
             graph[u]
-            |> Set.filter (fun (v, _) -> Set.contains v queue)
+            |> Set.filter (fun (v, _) -> List.contains v queue)
 
         let altDistances =
             [
@@ -96,11 +90,10 @@ let rec djikstra (queue : Set<Node>) (distances : Map<Node, Cost>) (fronteer : N
             )
 
         let newQueue =
-            Set.remove u queue
-            |> Set.filter (fun (x, y) -> x >= fst fronteer && y >= snd fronteer)
+            List.filter ((<>) u) queue
 
         djikstra newQueue (Map.merge distances altDistances) newFronteer
 
-
-djikstra initQueue initDist (0,0)
-|> printfn "%A"
+while true do
+    djikstra initQueue initDist (0,0)
+    |> printfn "%A"

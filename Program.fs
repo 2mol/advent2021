@@ -12,9 +12,11 @@
         // "day 5-2", Day05.solution2
         // "day 5-1", Day06.solution1
         // "day 5-2", Day06.solution2
-        "day 5-1", Day07.solution1
-        "day 5-2", Day07.solution2
+        // "day 5-1", Day15.solution1
+        // "day 5-2", Day15.solution2
     ]
 
-for day, solution in solutions do
-    printfn "%s: %s" day solution
+Day15.solution2
+
+// for day, solution in solutions do
+//     printfn "%s: %s" day solution
