@@ -44,11 +44,11 @@ type Packet =
         Content : Content
     }
 and Content =
-    | Literal of int64
+    | Literal of uint64
     | Operator of Packet list
 
 let bitsToInt str = Convert.ToInt32(str, 2)
-let bitsToInt64 str = Convert.ToInt64(str, 2)
+let bitsToUInt64 str = Convert.ToUInt64(str, 2)
 
 let rec extractLiteral ((str, acc) : string * (string list)) : string * string =
     if str[0] = '0' then
@@ -76,7 +76,7 @@ let rec parse (limit : int) (str : string) : (Packet list) * string =
                 {
                     Version = version
                     TypeId = typeId
-                    Content = Literal (bitsToInt64 literalBits)
+                    Content = Literal (bitsToUInt64 literalBits)
                 }
             if limit = 1 then
                 [packet], literalRest
@@ -100,7 +100,7 @@ let rec parse (limit : int) (str : string) : (Packet list) * string =
                     let subPacketsTo = subPacketFrom+subPacketsInfo
                     let strSubPackets = str[subPacketFrom..subPacketsTo-1]
                     let rest0 = str[subPacketsTo..]
-                    let packets1, rest1 = parse 0 strSubPackets // rest1 SHOULD be empty...
+                    let packets1, rest1 = parse 0 strSubPackets // rest1 SHOULD be empty, right?
                     packets1, rest0
                 else
                     parse subPacketsInfo str[subPacketFrom..]
@@ -120,18 +120,20 @@ let rec sumVersionNumbers (packet : Packet) =
     | Operator subPackets ->
         packet.Version + (List.sumBy sumVersionNumbers subPackets)
 
-let rec value (packet : Packet) =
+let rec value (packet : Packet) : uint64 =
     match packet.Content with
-    | Literal v -> v
+    | Literal v ->
+        // printfn "got value %i" v
+        v
     | Operator subPackets ->
         match packet.TypeId with
         | 0 -> List.sumBy value subPackets
-        | 1 -> List.fold (fun acc p -> acc*(value p)) 1 subPackets
+        | 1 -> List.fold (fun acc p -> acc * (value p)) 1UL subPackets
         | 2 -> List.map value subPackets |> List.min
         | 3 -> List.map value subPackets |> List.max
-        | 5 -> if value subPackets[0] > value subPackets[1] then 1 else 0
-        | 6 -> if value subPackets[0] < value subPackets[1] then 1 else 0
-        | 7 -> if value subPackets[0] = value subPackets[1] then 1 else 0
+        | 5 -> if value subPackets[0] > value subPackets[1] then 1UL else 0UL
+        | 6 -> if value subPackets[0] < value subPackets[1] then 1UL else 0UL
+        | 7 -> if value subPackets[0] = value subPackets[1] then 1UL else 0UL
 
 let inputBits =
     input
@@ -143,7 +145,70 @@ let inputBits =
 // |> List.sumBy sumVersionNumbers
 // |> printfn "day16-1: %i"
 
-parse 0 inputBits
-|> fst |> fun a -> a[0]
-|> value
-|> printfn "day16-2: %A"
+let pretty (packet : Packet) : string =
+    match packet.Content with
+    | Literal v ->
+        sprintf "packet lit (val %i) type %i"
+            v packet.TypeId
+    | Operator sub ->
+        sprintf "packet op (val %i) type %i - children: %i"
+            (value packet) packet.TypeId (List.length sub) //(List.map value sub)
+
+let rec pretties' depth packets =
+    if depth > 20 then
+        printfn "[...]"
+    else
+        for packet in packets do
+            let indent = Array.create (depth) " "
+            String.concat "" indent + pretty packet
+            |> printfn "%s"
+            match packet.Content with
+            | Literal _ -> ()
+            | Operator ps ->
+                pretties' (depth+1) ps
+
+let pretties p = pretties' 0 [p]
+
+inputBits
+|> parse 0
+|> fst
+|> List.head
+|> (fun p ->
+    let (Operator ps) = p.Content
+    ps
+    )
+|> List.head
+|> (fun p ->
+    let (Operator ps) = p.Content
+    ps
+    )
+|> fun a -> a[3]
+|> (fun p ->
+    let (Operator ps) = p.Content
+    ps
+    )
+|> fun a -> a[7]
+|> (fun p ->
+    let (Operator ps) = p.Content
+    ps
+    )
+|> fun a -> a[7]
+|> pretties
+// |> (fun p ->
+//     let (Operator ps) = p.Content
+//     ps
+//     )
+// |> fun a -> a[2]
+// |> (fun p ->
+//     let (Operator ps) = p.Content
+//     ps
+//     )
+// |> fun a -> a[1]
+// |> pretties 0
+// |> pretty |> printfn "%s"
+// // |> List.map value
+// |> fun p -> p.TypeId
+// // |> List.map (fun p -> )
+// // |> List.sum
+// // |> List.map (fun p -> p.TypeId)
+// |> printfn "day16-2: %A"
