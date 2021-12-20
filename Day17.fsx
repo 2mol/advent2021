@@ -14,7 +14,7 @@ let input =
     System.IO.File.ReadLines "inputs/input17.txt"
     |> Seq.head
 
-let parse (str : string) : (int*int)*(int*int)=
+let parse (str : string) : ((int*int)*(int*int)) =
     let [|[|txmin;txmax|]; [|tymin;tymax|]|] =
         str.TrimStart(Array.ofSeq "target area: x=")
         |> String.split ", y="
@@ -60,6 +60,20 @@ let rec shoot' (x, y) (vx, vy) =
 
 let shoot = shoot' (0,0)
 
+let rec shoot2' (x, y) (vx, vy) =
+    if x >= txmin && x <= txmax && y >= tymin && y <= tymax then
+        Some (x, y)
+    else if y < tymin || x > txmax then
+        None
+    else
+        let new_x = x + vx
+        let new_y = y + vy
+        let new_vx = max 0 (vx - 1)
+        let new_vy = vy - 1
+        shoot2' (new_x, new_y) (new_vx, new_vy)
+
+let shoot2 = shoot2' (0,0)
+
 let hitsTarget (trail : (int*int) list) =
     let (x, y) = trail[^1] // second-to-last, due to the way shot trail is constructed.
     x >= txmin && x <= txmax && y >= tymin && y <= tymax
@@ -68,11 +82,12 @@ let hitsTarget (trail : (int*int) list) =
 
 let shots =
     [
-        for y in [190..600] do
-        for x in [11..14] do
-        let shot = shoot (x,y)
-        if hitsTarget shot then
-            yield x, y, (List.maxBy snd shot)
+        for y in [-210..220] do
+        for x in [1..116] do
+        // if hitsTarget shot then
+        match shoot2 (x,y) with
+        | Some _ -> yield x, y //, (List.maxBy snd shot)
+        | None -> yield! []
     ]
 
 // y > 1 (want it to stagnate, and anyway it wants to be large)
@@ -84,8 +99,13 @@ let shots =
 
 // (hitsTarget shot, List.map snd shot |> List.max)
 // |> printfn "day17-1: %A"
-for s in shots do
-    let x, y, maxCoord = s
-    printfn "%i %i: %A" x y maxCoord
+
+
+// for s in shots do
+//     let x, y, maxCoord = s
+//     printfn "%i %i: %A" x y maxCoord
+
+List.length shots
+|> printfn "day17-1: %A"
 
 printfn "------------ \u001b[32mdone\u001b[0m ------------\n"
