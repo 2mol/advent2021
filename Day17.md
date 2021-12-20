@@ -12,10 +12,10 @@ observarions
 strategy
 --------
 
-```
-type FailureMode =
-  | StagnateLeft
-  | StagnateRight
-  | OvershootLeft
-  | OvershootRight
-```
+failure cases:
+
+1. shot is **short**: it stagnates before x gets to txmin
+2. shot is **long**: it stagnates before y gets past tymax, but x has stagnated after txmax
+3. shot **undershoots**: y smaller than tymin but x has not yet stagnated
+4. shot **overshoots**: x past txmax, no stagnation
+5. shot **shoots through**: trajectory intersects the target, but doesn't overlap

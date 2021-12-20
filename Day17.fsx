@@ -61,7 +61,7 @@ let rec shoot' (x, y) (vx, vy) =
 let shoot = shoot' (0,0)
 
 let hitsTarget (trail : (int*int) list) =
-    let (x, y) = trail[^1]
+    let (x, y) = trail[^1] // second-to-last, due to the way shot trail is constructed.
     x >= txmin && x <= txmax && y >= tymin && y <= tymax
 
 let shot = shoot (6,9)
