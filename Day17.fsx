@@ -6,7 +6,7 @@ open Extensions
 
 // live reload with:
 // -----------------
-// echo Day17.fsx | entr -n dotnet fsi /_
+// echo Day17.fsx | entr -n dotnet fsi --langversion:preview /_
 
 printfn "---------- \u001b[33mlet's go\u001b[0m ----------"
 
@@ -49,19 +49,19 @@ let draw shotTrail =
     |> String.concat "\n"
 
 let rec shoot' (x, y) (vx, vy) =
-    let new_x = x + vx
-    let new_y = y + vy
-    if new_y < tymin || new_x > txmax then
+    if y < tymin || x > txmax then
         []
     else
+        let new_x = x + vx
+        let new_y = y + vy
         let new_vx = max 0 (vx - 1)
         let new_vy = vy - 1
         (new_x, new_y) :: shoot' (new_x, new_y) (new_vx, new_vy)
 
 let shoot = shoot' (0,0)
 
-let hitsTarget trail =
-    let (x, y) = List.last trail
+let hitsTarget (trail : (int*int) list) =
+    let (x, y) = trail[^1]
     x >= txmin && x <= txmax && y >= tymin && y <= tymax
 
 let shot = shoot (6,9)
