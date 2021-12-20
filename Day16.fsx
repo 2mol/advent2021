@@ -70,40 +70,44 @@ let rec parse (limit : int) (str : string) : (Packet list) * string =
         match typeId with
         | 4 ->
             // Literal packet
-            let literalBits, literalRest = extractLiteral (str[6..], [])
+            let litBits, litRest = extractLiteral (str[6..], [])
             // printfn "wanna parse %s to int" literalBits
             let packet =
                 {
                     Version = version
                     TypeId = typeId
-                    Content = Literal (bitsToUInt64 literalBits)
+                    Content = Literal (bitsToUInt64 litBits)
                 }
             if limit = 1 then
-                [packet], literalRest
+                [packet], litRest
             else if limit > 1 then
-                let packets, rest = parse (limit - 1) literalRest
+                let packets, rest = parse (limit - 1) litRest
                 packet :: packets, rest
             else
-                let packets, rest = parse 0 literalRest
+                let packets, rest = parse 0 litRest
                 packet :: packets, rest
         | _ ->
             // Operator packet
             let lengthTypeId = str[6]
-            let subPacketFrom =
-                if lengthTypeId = '0' then 15 else 11
-                |> (+) 7
-            let subPacketsInfo =
-                str[7..subPacketFrom-1]
-                |> bitsToInt
             let subPackets, subRest =
-                if lengthTypeId = '0' then
-                    let subPacketsTo = subPacketFrom+subPacketsInfo
-                    let strSubPackets = str[subPacketFrom..subPacketsTo-1]
-                    let rest0 = str[subPacketsTo..]
-                    let packets1, rest1 = parse 0 strSubPackets // rest1 SHOULD be empty, right?
-                    packets1, rest0
-                else
-                    parse subPacketsInfo str[subPacketFrom..]
+                match lengthTypeId with
+                | '0' ->
+                    let subPacketsBitLength =
+                        str[7..]
+                        |> Seq.take 15 |> String.Concat
+                        |> bitsToInt
+                    let subStr =
+                        str[7+15..]
+                        |> Seq.take subPacketsBitLength |> String.Concat
+                    let ps, "" = parse 0 subStr
+                    ps, str[7+15+subPacketsBitLength..]
+                | '1' ->
+                    let subPacketsCount =
+                        str[7..]
+                        |> Seq.take 11 |> String.Concat
+                        |> bitsToInt
+
+                    parse subPacketsCount str[7+11..]
 
             let packet =
                 {
@@ -111,8 +115,14 @@ let rec parse (limit : int) (str : string) : (Packet list) * string =
                     TypeId = typeId
                     Content = Operator subPackets
                 }
-            let packets, rest = parse 0 subRest
-            packet :: packets, rest
+            if limit = 1 then
+                [packet], subRest
+            else if limit > 1 then
+                let packets, rest = parse (limit - 1) subRest
+                packet :: packets, rest
+            else
+                let packets, rest = parse 0 subRest
+                packet :: packets, rest
 
 let rec sumVersionNumbers (packet : Packet) =
     match packet.Content with
@@ -140,6 +150,11 @@ let inputBits =
     |> Array.map toBin
     |> String.concat ""
 
+let children (packet : Packet) : Packet list =
+    match packet.Content with
+    | Literal _ -> []
+    | Operator sub -> sub
+
 let pretty (packet : Packet) : string =
     match packet.Content with
     | Literal v ->
@@ -149,8 +164,8 @@ let pretty (packet : Packet) : string =
         sprintf "op (val %i) type %i - children: %i"
             (value packet) packet.TypeId (List.length sub) //(List.map value sub)
 
-let rec pretties' depth packets =
-    if depth > 2 then
+let rec pretties' maxDepth depth packets =
+    if depth > maxDepth then
         printfn "[...]"
     else
         for packet in packets do
@@ -160,13 +175,14 @@ let rec pretties' depth packets =
             match packet.Content with
             | Literal _ -> ()
             | Operator ps ->
-                pretties' (depth+1) ps
+                pretties' maxDepth (depth+1) ps
 
-let pretties p = pretties' 0 [p]
+let pretties maxDepth p = pretties' maxDepth 0 [p]
 
 let packets =
     parse 0 inputBits
     |> fst
+    // |> printfn "day16-2: %A"
 
 packets
 |> List.sumBy sumVersionNumbers
@@ -174,9 +190,5 @@ packets
 
 packets
 |> List.head
-|> pretties
-
-packets
-|> List.head
 |> value
-|> printfn "day16-2: %A"
+|> printfn "day16-2: %i"
