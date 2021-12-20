@@ -49,7 +49,7 @@ let draw shotTrail =
     |> String.concat "\n"
 
 let rec shoot' (x, y) (vx, vy) =
-    if y < tymin then // || x > txmax
+    if y < tymin || x > txmax then
         []
     // else if x < txmin then
     //     []
@@ -63,7 +63,7 @@ let rec shoot' (x, y) (vx, vy) =
 
 let shoot = shoot' (0,0)
 
-shoot (6,3)
+shoot (6,9)
 |> draw
 |> printfn "%s"
 
