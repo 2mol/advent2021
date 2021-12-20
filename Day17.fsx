@@ -49,24 +49,27 @@ let draw shotTrail =
     |> String.concat "\n"
 
 let rec shoot' (x, y) (vx, vy) =
-    if y < tymin || x > txmax then
+    let new_x = x + vx
+    let new_y = y + vy
+    if new_y < tymin || new_x > txmax then
         []
-    // else if x < txmin then
-    //     []
     else
-        let new_x = x + vx
-        let new_y = y + vy
         let new_vx = max 0 (vx - 1)
         let new_vy = vy - 1
-
         (new_x, new_y) :: shoot' (new_x, new_y) (new_vx, new_vy)
 
 let shoot = shoot' (0,0)
 
-shoot (6,9)
-|> draw
+let hitsTarget trail =
+    let (x, y) = List.last trail
+    x >= txmin && x <= txmax && y >= tymin && y <= tymax
+
+let shot = shoot (6,9)
+
+draw shot
 |> printfn "%s"
 
-// |> printfn "day17-1: %A"
+hitsTarget shot
+|> printfn "day17-1: %A"
 
 printfn "------------ \u001b[32mdone\u001b[0m ------------\n"
