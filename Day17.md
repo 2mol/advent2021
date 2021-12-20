@@ -19,3 +19,9 @@ failure cases:
 3. shot **undershoots**: y smaller than tymin but x has not yet stagnated
 4. shot **overshoots**: x past txmax, no stagnation
 5. shot **shoots through**: trajectory intersects the target, but doesn't overlap
+
+1. -> increase initial vx
+2. -> derease initial vx
+3. -> increase initial vy?
+4. -> decrease vx
+5. is the tricky one!

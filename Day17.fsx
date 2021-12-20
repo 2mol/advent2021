@@ -11,7 +11,7 @@ open Extensions
 printfn "---------- \u001b[33mlet's go\u001b[0m ----------"
 
 let input =
-    System.IO.File.ReadLines "inputs/input17small.txt"
+    System.IO.File.ReadLines "inputs/input17.txt"
     |> Seq.head
 
 let parse (str : string) : (int*int)*(int*int)=
@@ -64,12 +64,28 @@ let hitsTarget (trail : (int*int) list) =
     let (x, y) = trail[^1] // second-to-last, due to the way shot trail is constructed.
     x >= txmin && x <= txmax && y >= tymin && y <= tymax
 
-let shot = shoot (6,9)
+// let shot = shoot (11,97)
 
-draw shot
-|> printfn "%s"
+let shots =
+    [
+        for y in [190..600] do
+        for x in [11..14] do
+        let shot = shoot (x,y)
+        if hitsTarget shot then
+            yield x, y, (List.maxBy snd shot)
+    ]
 
-hitsTarget shot
-|> printfn "day17-1: %A"
+// y > 1 (want it to stagnate, and anyway it wants to be large)
+// x in [11..14]
+// y >= 97
+
+// draw shot
+// |> printfn "%s"
+
+// (hitsTarget shot, List.map snd shot |> List.max)
+// |> printfn "day17-1: %A"
+for s in shots do
+    let x, y, maxCoord = s
+    printfn "%i %i: %A" x y maxCoord
 
 printfn "------------ \u001b[32mdone\u001b[0m ------------\n"
