@@ -50,7 +50,7 @@ let extend infVal n a =
                 a[i-n,j-n]
         )
 
-let ENHANCE infVal a =
+let ENHANCE infVal (a : bool[,]) =
     let l1 = Array2D.length1 a
     let l2 = Array2D.length2 a
 
@@ -73,15 +73,14 @@ let ENHANCE infVal a =
     (Array2D.mapi enhance ae)[1..l1+2,1..l2+2]
 
 let enhanced =
-    image
-    // |> extend true 2
-    // |> extend false 2
-    |> ENHANCE false
-    |> ENHANCE true
+    List.fold (fun img i -> ENHANCE (i%2=0) img) image [1..50]
+    // image
+    // |> ENHANCE false
+    // |> ENHANCE true
 
-enhanced
-|> draw
-|> printfn "%s"
+// enhanced
+// |> draw
+// |> printfn "%s"
 
 enhanced
 |> Array2D.flatten
