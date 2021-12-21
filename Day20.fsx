@@ -50,14 +50,29 @@ let extend n a =
                 a[i-n,j-n]
         )
 
-// let ENHANCE a =
-//     let l1 = Array2D.length1 a
-//     let l2 = Array2D.length2 a
+let ENHANCE a =
+    let l1 = Array2D.length1 a
+    let l2 = Array2D.length2 a
 
-//     Array2D.init l1 l2
-//         (fun i j ->
-//             a[]
-//         )
+    let ae =
+        extend 2 a
+
+    let enhance i j _ =
+        if i < 1 || j < 1 || i > l1+2 || j > l2+2 then
+            false
+        else
+            let bidx =
+                ae[i-1..i+1,j-1..j+1]
+                |> Array2D.transpose
+                |> Array2D.flatten
+                |> Array.map (fun b -> if b then '1' else '0')
+                |> fun cs -> String.Concat(cs)
+            let idx = Convert.ToInt32(bidx, 2)
+            printfn "%A" (i, j, bidx, idx)
+            enhancement[idx]
+
+    (Array2D.mapi enhance ae)[1..l1+2,1..l2+2]
+
 
     // for i in [0..l1-1] do
     //     for j in [0..l2-1] do
@@ -66,8 +81,9 @@ let extend n a =
 
 
 image
-|> extend 2
-// |> ENHANCE
+// |> extend 2
+|> ENHANCE
+|> ENHANCE
 |> draw
 |> printfn "%s"
 // |> printfn "day20-1: %A"

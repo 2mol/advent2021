@@ -14,6 +14,8 @@ module Array =
 
 module Array2D =
     let flatten (arr: 'T [,]) = arr |> Seq.cast<'T> |> Seq.toArray
+    let transpose (arr: 'T [,]) =
+        Array2D.init (Array2D.length2 arr) (Array2D.length1 arr) (fun i j -> arr[j,i])
 
     // TODO: should be named `ofRows` (and there could be an `ofColumns` equivalent
     let ofArrays (a : 'T array array) =
