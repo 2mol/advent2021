@@ -11,7 +11,7 @@ open Extensions
 printfn "---------- \u001b[91mlet's go\u001b[0m ----------"
 
 let input =
-    System.IO.File.ReadLines "inputs/input20sm.txt"
+    System.IO.File.ReadLines "inputs/input20.txt"
     |> Seq.toArray
 
 let enhancement =
@@ -39,23 +39,23 @@ let draw a =
     |> List.map (fun cs -> String.Concat(cs))
     |> String.concat "\n"
 
-let extend n a =
+let extend infVal n a =
     let l1 = Array2D.length1 a + 2*n
     let l2 = Array2D.length2 a + 2*n
     Array2D.init l1 l2
         (fun i j ->
             if i < n || j < n || i > l1-1-n || j > l2-1-n then
-                false
+                infVal
             else
                 a[i-n,j-n]
         )
 
-let ENHANCE a =
+let ENHANCE infVal a =
     let l1 = Array2D.length1 a
     let l2 = Array2D.length2 a
 
     let ae =
-        extend 2 a
+        extend infVal 2 a
 
     let enhance i j _ =
         if i < 1 || j < 1 || i > l1+2 || j > l2+2 then
@@ -68,22 +68,23 @@ let ENHANCE a =
                 |> Array.map (fun b -> if b then '1' else '0')
                 |> fun cs -> String.Concat(cs)
             let idx = Convert.ToInt32(bidx, 2)
-            printfn "%A" (i, j, bidx, idx)
             enhancement[idx]
 
     (Array2D.mapi enhance ae)[1..l1+2,1..l2+2]
 
+let enhanced =
+    image
+    // |> extend true 2
+    // |> extend false 2
+    |> ENHANCE false
+    |> ENHANCE true
 
-    // for i in [0..l1-1] do
-    //     for j in [0..l2-1] do
-    //         let
-    //         a[i,j] <- false
-
-
-image
-// |> extend 2
-|> ENHANCE
-|> ENHANCE
+enhanced
 |> draw
 |> printfn "%s"
-// |> printfn "day20-1: %A"
+
+enhanced
+|> Array2D.flatten
+|> Array.filter id
+|> Array.length
+|> printfn "day20-1: %A"
