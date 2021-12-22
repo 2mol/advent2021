@@ -44,6 +44,13 @@ type Direction = Left | Right
 let add t1 t2 =
     Branch (t1, t2)
 
+let rec look t path =
+    match path, t with
+    | [], _ -> t
+    | Left::pathTail, Branch (t1, t2) -> look t1 pathTail
+    | Right::pathTail, Branch (t1, t2) -> look t2 pathTail
+    | _ -> failwith "can't reach the spot"
+
 let rec replace mainT path subT =
     match path, mainT with
     | [], _ ->
@@ -57,7 +64,9 @@ let rec replace mainT path subT =
     | _ -> failwith "can't reach the spot"
 
 
-let detectExploders t =
-    []
+let rec findExploders t (path : Direction list) : ((Direction list)*(int*int)) list =
+    match t with
+    | Branch (Leaf a, Leaf b) -> []
+    | _ -> [[],(0,0)]
 
 let rec reduce t = t
