@@ -55,15 +55,29 @@ let inputNumbers =
 type Direction =
     Left | Right
 
-let opposite dir =
-    if dir = Left then Right else Left
-
 let rec look path tree =
     match path, tree with
     | [], _ -> tree
     | Left::pathTail, Branch (t1, _) -> look pathTail t1
     | Right::pathTail, Branch (_, t2) -> look pathTail t2
     | _ -> failwith <| sprintf "can't reach the spot to look %s - %A" (treeToString tree) path
+
+let rec allPaths' partialPath tree : Direction list list =
+    match look partialPath tree with
+    | Leaf _ ->
+        let otherPaths =
+            if List.contains Left partialPath then
+                let idx = List.findIndexBack ((=) Left) partialPath
+                let newPartialPath = List.append partialPath[..idx-1] [Right]
+                allPaths' newPartialPath tree
+            else
+                // all Rights -> we reached the end
+                []
+        partialPath :: otherPaths
+    | Branch _ ->
+        allPaths' (List.append partialPath [Left]) tree
+
+let allPaths tree = allPaths' [] tree
 
 let rec replace path subTree tree =
     match path, tree with
@@ -85,7 +99,7 @@ let rec goFurthest dir tree =
         | Left -> Left :: goFurthest dir t1
         | Right -> Right :: goFurthest dir t2
 
-let rec somethingExplodey (path : Direction list) tree : Tree =
+let explode (path : Direction list) tree : Tree =
     match look path tree with
     | Branch (Leaf left, Leaf right) ->
         replace path (Leaf 0) tree
@@ -113,16 +127,18 @@ let rec somethingExplodey (path : Direction list) tree : Tree =
                 replace rightValPath (Leaf (rightVal + right)) t
             else
                 t
-    | _ -> failwith "you gave me the wrong exploding coordinates"
+    | _ -> failwith "you gave me the wrong explosion coordinates"
+
+// let rec findExploder
     // | Branch (Branch _, _) ->
-    //     somethingExplodey (Left::path) tree
+    //     explode (Left::path) tree
     // | Branch (Leaf _, Branch _) ->
-    //     somethingExplodey (Right::path) tree
+    //     explode (Right::path) tree
 
 Parse.parse "[[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]]"
 |> Option.get
-|> somethingExplodey [Left;Left;Left;Left]
-|> somethingExplodey [Left;Right;Right;Left]
+|> explode [Left;Left;Left;Left]
+|> explode [Left;Right;Right;Left]
 // |> look [Left; Left; Left; Right]
 |> treeToString
 |> printfn "%A"
