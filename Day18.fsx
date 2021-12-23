@@ -129,23 +129,55 @@ let explode (path : Direction list) tree : Tree =
                 t
     | _ -> failwith "you gave me the wrong explosion coordinates"
 
-// let rec findExploder
-    // | Branch (Branch _, _) ->
-    //     explode (Left::path) tree
-    // | Branch (Leaf _, Branch _) ->
-    //     explode (Right::path) tree
+let exploders tree =
+    [
+        for path in (allPaths tree) do
+        match look path[..^1] tree with
+        | Branch (Leaf _, Leaf _) when List.length path > 4 -> yield path[..^1]
+        | _ -> yield! []
+    ]
+    |> List.distinct
 
-Parse.parse "[[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]]"
-|> Option.get
-|> explode [Left;Left;Left;Left]
-|> explode [Left;Right;Right;Left]
-// |> look [Left; Left; Left; Right]
-|> treeToString
-|> printfn "%A"
+let split tree =
+    let splitPaths =
+        [
+            for path in (allPaths tree) do
+            match look path tree with
+            | Leaf n when n >= 10 -> yield path, n
+            | _ -> yield! []
+        ]
+    let down n = (float)n / 2. |> floor |> int
+    let up n = (float)n / 2. |> ceil |> int
+    List.fold (fun t (p, n) ->
+        printfn "splitting %s" (treeToString t)
+        replace p (Branch (Leaf (down n), Leaf (up n))) t
+    ) tree splitPaths
+
+let rec reduce tree =
+    // printfn "%s" (treeToString tree)
+    let reducedTree =
+        exploders tree
+        |> List.fold (fun t p ->
+            printfn "exploding %s" (treeToString t)
+            explode p t
+        ) tree
+        |> split
+    if reducedTree = tree then
+        tree
+    else
+        reduce reducedTree
 
 // --------------------------- addition rules etc -----------------------------
 
-let rec reduce t = t
+
+Parse.parse "[[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]]"
+|> Option.get
+|> reduce
+// |> explode [Left;Left;Left;Left]
+// |> explode [Left;Right;Right;Left]
+// |> look [Left; Left; Left; Right]
+|> treeToString
+|> printfn "%A"
 
 let add t1 t2 =
     Branch (t1, t2)
