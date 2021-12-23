@@ -93,10 +93,10 @@ let rec somethingExplodey (path : Direction list) tree : Tree =
             // to go to the next left, find the last crossing that _wasn't_ left,
             // and go left there instead
             if List.contains Right path then
-                let idx = List.findIndexBack ((=) Left) path
+                let idx = List.findIndexBack ((=) Right) path
                 let pathStub = List.append path[..idx-1] [Left]
-                let leftPath = goFurthest Left (look pathStub tree)
-                let leftValPath = List.append pathStub leftPath
+                let rightPath = goFurthest Right (look pathStub tree)
+                let leftValPath = List.append pathStub rightPath
                 let (Leaf leftVal) = look leftValPath tree
                 replace leftValPath (Leaf (leftVal + left)) t
             else
@@ -113,14 +113,16 @@ let rec somethingExplodey (path : Direction list) tree : Tree =
                 replace rightValPath (Leaf (rightVal + right)) t
             else
                 t
-    | Branch (Branch _, _) ->
-        somethingExplodey (Left::path) tree
-    | Branch (Leaf _, Branch _) ->
-        somethingExplodey (Right::path) tree
+    | _ -> failwith "you gave me the wrong exploding coordinates"
+    // | Branch (Branch _, _) ->
+    //     somethingExplodey (Left::path) tree
+    // | Branch (Leaf _, Branch _) ->
+    //     somethingExplodey (Right::path) tree
 
 Parse.parse "[[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]]"
 |> Option.get
 |> somethingExplodey [Left;Left;Left;Left]
+|> somethingExplodey [Left;Right;Right;Left]
 // |> look [Left; Left; Left; Right]
 |> treeToString
 |> printfn "%A"
