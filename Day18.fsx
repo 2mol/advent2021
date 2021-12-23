@@ -12,7 +12,7 @@ open Extensions
 printfn "---------- \u001b[34mlet's go\u001b[0m ----------"
 
 let input =
-    System.IO.File.ReadLines "inputs/input18sm.txt"
+    System.IO.File.ReadLines "inputs/input18.txt"
     |> Seq.toList
 
 // ----------------------- data type and parser ------------------------------
@@ -146,19 +146,21 @@ let split tree =
             | Leaf n when n >= 10 -> yield path, n
             | _ -> yield! []
         ]
-    let down n = (float)n / 2. |> floor |> int
-    let up n = (float)n / 2. |> ceil |> int
-    List.fold (fun t (p, n) ->
-        printfn "splitting %s" (treeToString t)
-        replace p (Branch (Leaf (down n), Leaf (up n))) t
-    ) tree splitPaths
+    if List.length splitPaths > 0 then
+        let down n = (float)n / 2. |> floor |> int
+        let up n = (float)n / 2. |> ceil |> int
+
+        let path, n = List.head splitPaths
+
+        replace path (Branch (Leaf (down n), Leaf (up n))) tree
+    else
+        tree
 
 let rec reduce tree =
-    // printfn "%s" (treeToString tree)
     let reducedTree =
         exploders tree
         |> List.fold (fun t p ->
-            printfn "exploding %s" (treeToString t)
+            // printfn "exploding %s" (treeToString t)
             explode p t
         ) tree
         |> split
@@ -167,17 +169,34 @@ let rec reduce tree =
     else
         reduce reducedTree
 
+// Parse.parse "[[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]]"
+// |> Option.get
+// |> reduce
+// // |> explode [Left;Left;Left;Left]
+// // |> explode [Left;Right;Right;Left]
+// // |> look [Left; Left; Left; Right]
+// |> treeToString
+// |> printfn "%A"
+
 // --------------------------- addition rules etc -----------------------------
 
-
-Parse.parse "[[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]]"
-|> Option.get
-|> reduce
-// |> explode [Left;Left;Left;Left]
-// |> explode [Left;Right;Right;Left]
-// |> look [Left; Left; Left; Right]
-|> treeToString
-|> printfn "%A"
-
 let add t1 t2 =
-    Branch (t1, t2)
+    reduce <| Branch (t1, t2)
+
+let rec magnitude tree =
+    match tree with
+    | Leaf n -> n
+    | Branch (t1, t2) -> 3 * magnitude t1 + 2 * magnitude t2
+
+// Parse.parse "[[[[0,7],4],[[7,8],[6,0]]],[8,1]]"
+// |> Option.get
+// |> magnitude
+// |> printfn "%A"
+
+List.tail inputNumbers
+|> List.fold add (List.head inputNumbers)
+|> reduce
+// |> treeToString
+// |> printfn "%A"
+|> magnitude
+|> printfn "day18-1: %i"
