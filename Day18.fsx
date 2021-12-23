@@ -21,6 +21,11 @@ type Tree =
     | Branch of Tree * Tree
     | Leaf of int
 
+let rec treeToString tree =
+    match tree with
+    | Leaf a -> sprintf "%i" a
+    | Branch (t1, t2) -> sprintf "[%s,%s]" (treeToString t1) (treeToString t2)
+
 module Parse =
     open FParsec
     let (tree : Parser<Tree, unit>), treeRef = createParserForwardedToRef()
@@ -35,9 +40,10 @@ module Parse =
 
     let parse = run tree >> toOption
 
-// run tree "[[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]]"
+// Parse.parse "[[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]]"
+// |> Option.get
+// |> treeToString
 // |> printfn "%A"
-
 
 let inputNumbers =
     input
@@ -46,33 +52,78 @@ let inputNumbers =
 
 // ------------------------ tree algorithms ----------------------------------
 
-type Direction = Left | Right
+type Direction =
+    Left | Right
 
-let rec look t path =
-    match path, t with
-    | [], _ -> t
-    | Left::pathTail, Branch (t1, t2) -> look t1 pathTail
-    | Right::pathTail, Branch (t1, t2) -> look t2 pathTail
-    | _ -> failwith "can't reach the spot"
+let opposite dir =
+    if dir = Left then Right else Left
 
-let rec replace mainT path subT =
-    match path, mainT with
+let rec look path tree =
+    match path, tree with
+    | [], _ -> tree
+    | Left::pathTail, Branch (t1, _) -> look pathTail t1
+    | Right::pathTail, Branch (_, t2) -> look pathTail t2
+    | _ -> failwith <| sprintf "can't reach the spot to look %s - %A" (treeToString tree) path
+
+let rec replace path subTree tree =
+    match path, tree with
     | [], _ ->
-        subT
+        subTree
     | Left::subPath, Branch (t1, t2) ->
-        let newT1 = replace t1 subPath subT
+        let newT1 = replace subPath subTree t1
         Branch (newT1, t2)
     | Right::subPath, Branch (t1, t2) ->
-        let newT2 = replace t2 subPath subT
+        let newT2 = replace subPath subTree t2
         Branch (t1, newT2)
-    | _ -> failwith "can't reach the spot"
+    | _ -> failwith "can't reach the spot to replace"
 
-let rec findExploders t (path : Direction list) : ((Direction list)*(int*int)) list =
-    match t with
-    | Branch (Leaf a, Leaf b) -> []
-    | _ -> [[],(0,0)]
+let rec goFurthest dir tree =
+    match tree with
+    | Leaf _ -> []
+    | Branch (t1, t2) ->
+        match dir with
+        | Left -> Left :: goFurthest dir t1
+        | Right -> Right :: goFurthest dir t2
 
-let findValue direction path : Direction list = []
+let rec somethingExplodey (path : Direction list) tree : Tree =
+    match look path tree with
+    | Branch (Leaf left, Leaf right) ->
+        replace path (Leaf 0) tree
+        |> fun t ->
+            // to go to the next left, find the last crossing that _wasn't_ left,
+            // and go left there instead
+            if List.contains Right path then
+                let idx = List.findIndexBack ((=) Left) path
+                let pathStub = List.append path[..idx-1] [Left]
+                let leftPath = goFurthest Left (look pathStub tree)
+                let leftValPath = List.append pathStub leftPath
+                let (Leaf leftVal) = look leftValPath tree
+                replace leftValPath (Leaf (leftVal + left)) t
+            else
+                t
+        |> fun t ->
+            // to go to the next right, find the last crossing that _wasn't_ right,
+            // and go right there instead
+            if List.contains Left path then
+                let idx = List.findIndexBack ((=) Left) path
+                let pathStub = List.append path[..idx-1] [Right]
+                let leftPath = goFurthest Left (look pathStub tree)
+                let rightValPath = List.append pathStub leftPath
+                let (Leaf rightVal) = look rightValPath tree
+                replace rightValPath (Leaf (rightVal + right)) t
+            else
+                t
+    | Branch (Branch _, _) ->
+        somethingExplodey (Left::path) tree
+    | Branch (Leaf _, Branch _) ->
+        somethingExplodey (Right::path) tree
+
+Parse.parse "[[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]]"
+|> Option.get
+|> somethingExplodey [Left;Left;Left;Left]
+// |> look [Left; Left; Left; Right]
+|> treeToString
+|> printfn "%A"
 
 // --------------------------- addition rules etc -----------------------------
 
