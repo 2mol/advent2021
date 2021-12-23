@@ -195,8 +195,14 @@ let rec magnitude tree =
 
 List.tail inputNumbers
 |> List.fold add (List.head inputNumbers)
-|> reduce
 // |> treeToString
 // |> printfn "%A"
 |> magnitude
 |> printfn "day18-1: %i"
+
+
+List.allPairs inputNumbers inputNumbers
+|> List.map (fun (a, b) -> add a b)
+|> List.map magnitude
+|> List.max
+|> printfn "day18-2: %i"
